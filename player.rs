@@ -5,18 +5,19 @@ use quicksilver::{
     run, Graphics, Input, Result, Settings, Window,
 };
 
-
-pub struct Player {
+#[derive(Debug)]
+pub struct Player<'a> {
     x: f32,
     y: f32,
     direction: f32,
     fov: f32,
+    map: &'a crate::map::Map,
 }
 
-impl Player {
-    pub fn new(x: f32, y: f32, dir: f32) -> Player 
+impl<'a> Player<'a> {
+    pub fn new(x: f32, y: f32, dir: f32, map: &'a mut crate::map::Map) -> Player<'a>
     {
-        return Player{x: x, y:y, direction: dir, fov: 120.0};
+        return Player{x: x, y:y, direction: dir, fov: 120.0, map: map};
     }
 
     pub fn rotate(&mut self, angle: f32) -> () 
@@ -27,20 +28,20 @@ impl Player {
         ) % (std::f32::consts::PI * 2f32);
     }
 
-    pub fn move_(&mut self, x: f32, map: &mut crate::map::Map) -> ()
+    pub fn move_(&mut self, x: f32) -> ()
     {
-        let hitbox_x = self.direction.cos() * 3.5;
-        let hitbox_y = self.direction.sin() * 3.5;
+        let hitbox_x = 0.0;//self.direction.cos() * 3.5;
+        let hitbox_y = 0.0;//self.direction.sin() * 3.5;
 
         let dx = self.direction.cos() * x;
         let dy = self.direction.sin() * x;
 
-        if map.can_move_to((self.x + dx + hitbox_x) / 32.0, (self.y + hitbox_y) / 32.0) 
+        if self.map.can_move_to((self.x + dx + hitbox_x) / 32.0, (self.y + hitbox_y) / 32.0) 
         {
             self.x += dx;
         }
 
-        if map.can_move_to((self.x + hitbox_x) / 32.0, (self.y + dy + hitbox_y) / 32.0) 
+        if self.map.can_move_to((self.x + hitbox_x) / 32.0, (self.y + dy + hitbox_y) / 32.0) 
         {
             self.y += dy;
         }

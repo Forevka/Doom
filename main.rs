@@ -9,6 +9,7 @@ use quicksilver::{
 
 mod player;
 mod map;
+mod camera;
 
 fn main() {
     run(
@@ -22,11 +23,15 @@ fn main() {
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     let mut map = map::Map::new(64);
-    let mut player = player::Player::new(100.0, 100.0, 30.0);
+    let mut player = player::Player::new(100.0, 100.0, 30.0, &mut map);
+
+    //let mut camera = camera::Camera::new(&mut player, &mut map);
+
+    //println!("{:?}", camera);
 
     loop {
         while let Some(_) = input.next_event().await {}
-        // Check the state of the keys, and move the square accordingly
+
         const SPEED: f32 = 2.0;
 
         let mut vector_x: f32 = 0.0;
@@ -47,29 +52,19 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         if input.key_down(Key::S) {
             vector_x -= SPEED;
         }
-
+        
         player.rotate(rotating);
 
         if vector_x != 0.0
         {
-            player.move_(vector_x, &mut map);
+            player.move_(vector_x);
         }
 
         gfx.clear(Color::WHITE);
         // Paint a blue square at the given position
-        for i in 0..map.grid.len() {
-            for j in 0..map.grid[0].len() {
-                gfx.fill_rect(
-                    &Rectangle::new(Vector::new(i as f32 * 32.0, j as f32 * 32.0), Vector::new(32.0, 32.0)),
-                    match map.grid[i][j] {
-                        0 => Color::WHITE,
-                        1 => Color::BLACK,
-                        _ => Color::WHITE,
-                    },
-                );
-            }
-        }
+        map.render(&mut gfx);
         player.draw(&mut gfx);
+        //camera.render(&mut gfx);
 
         gfx.present(&window)?;
     }

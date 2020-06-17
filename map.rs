@@ -1,3 +1,11 @@
+use quicksilver::{
+    geom::{Circle, Rectangle, Vector},
+    graphics::Color,
+    input::Key,
+    run, Graphics, Input, Result, Settings, Window,
+};
+
+
 #[derive(Debug)]
 pub struct Map {
     pub size: u8,
@@ -6,7 +14,7 @@ pub struct Map {
 
 impl Map {
     pub fn new(size: u8) -> Map {
-        let grid: Vec<Vec<u8>> = vec![
+        let mut grid: Vec<Vec<u8>> = vec![
             vec![1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
             vec![1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
             vec![1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], 
@@ -52,5 +60,20 @@ impl Map {
             }
         }
         return false;
+    }
+
+    pub fn render(&mut self, gfx: &mut quicksilver::graphics::Graphics) -> () {
+        for i in 0..self.grid.len() {
+            for j in 0..self.grid[0].len() {
+                gfx.fill_rect(
+                    &Rectangle::new(Vector::new(i as f32 * 32.0, j as f32 * 32.0), Vector::new(32.0, 32.0)),
+                    match self.grid[i][j] {
+                        0 => Color::WHITE,
+                        1 => Color::BLACK,
+                        _ => Color::WHITE,
+                    },
+                );
+            }
+        }
     }
 }
