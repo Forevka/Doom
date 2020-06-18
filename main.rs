@@ -1,11 +1,12 @@
-// Example 8: Input
-// Respond to user keyboard and mouse input onscreen
+
 use quicksilver::{
     geom::{Circle, Rectangle, Vector},
     graphics::Color,
     input::Key,
     run, Graphics, Input, Result, Settings, Window,
 };
+use std::rc::Rc;
+use std::cell::RefCell;
 
 mod player;
 mod map;
@@ -23,9 +24,14 @@ fn main() {
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     let mut map = map::Map::new(64);
-    let mut player = player::Player::new(100.0, 100.0, 30.0, &mut map);
 
-    //let mut camera = camera::Camera::new(&mut player, &mut map);
+    let mapRef: Rc<RefCell<map::Map>> = Rc::new(RefCell::new(map));
+
+    let mut player = player::Player::new(100.0, 100.0, 30.0);
+
+    let mut playerRef: Rc<RefCell<player::Player>> = Rc::new(RefCell::new(player));
+
+    //let mut camera = camera::Camera::new(Rc::clone(&playerRef), Rc::clone(&mapRef));
 
     //println!("{:?}", camera);
 
@@ -53,17 +59,23 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             vector_x -= SPEED;
         }
         
-        player.rotate(rotating);
+
+        player::Player::rotate(&mut playerRef.borrow_mut(), rotating);
 
         if vector_x != 0.0
         {
-            player.move_(vector_x);
+            player::Player::move_(&mut playerRef.borrow_mut(), vector_x, &mapRef.borrow());
         }
 
         gfx.clear(Color::WHITE);
-        // Paint a blue square at the given position
-        map.render(&mut gfx);
-        player.draw(&mut gfx);
+
+        map::Map::render(&mapRef.borrow(), &mut gfx);
+        player::Player::draw(&playerRef.borrow(), &mut gfx);
+        camera::Camera::render(&playerRef.borrow(), &mapRef.borrow(), &mut gfx);
+
+        //let x = Rc::get_mut(&mut playerRef).unwrap();
+        //x.draw(&mut gfx);
+        //playerRef.draw(&mut gfx);
         //camera.render(&mut gfx);
 
         gfx.present(&window)?;

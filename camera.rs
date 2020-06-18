@@ -6,19 +6,18 @@ use quicksilver::{
 };
 
 #[derive(Debug)]
-pub struct Camera<'a> {
-    player: &'a crate::player::Player<'a>,
-    map: &'a crate::map::Map,
+pub struct Camera {
+
 }
 
-impl<'a> Camera<'a> {
-    pub fn new(player: &'a mut crate::player::Player, map: &'a mut crate::map::Map) -> Camera<'a>
+impl Camera {
+    pub fn render(player: &crate::player::Player, map: &crate::map::Map, gfx: &mut quicksilver::graphics::Graphics) -> ()
     {
-        return Camera{player: player, map: map};
-    }
-
-    pub fn render(&mut self, gfx: &mut quicksilver::graphics::Graphics) -> ()
-    {
-        
+        let resolution: i32 = 320;
+        for column in 0..resolution {
+            let x = column as f32 / resolution as f32 - 0.5;
+            let angle = x.atan2(0.8);
+            //let ray = 
+        }
     }
 }

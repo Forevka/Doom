@@ -4,46 +4,48 @@ use quicksilver::{
     input::Key,
     run, Graphics, Input, Result, Settings, Window,
 };
+use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct Player<'a> {
+pub struct Player {
     x: f32,
     y: f32,
     direction: f32,
     fov: f32,
-    map: &'a crate::map::Map,
 }
 
-impl<'a> Player<'a> {
-    pub fn new(x: f32, y: f32, dir: f32, map: &'a mut crate::map::Map) -> Player<'a>
+impl Player {
+    pub fn new(x: f32, y: f32, dir: f32) -> Player
     {
-        return Player{x: x, y:y, direction: dir, fov: 120.0, map: map};
+        return Player{x: x, y:y, direction: dir, fov: 120.0};
     }
 
-    pub fn rotate(&mut self, angle: f32) -> () 
+    pub fn rotate(player: &mut Player, angle: f32) -> ()
     {
-        self.direction = (
-            self.direction + angle + 
+        player.direction = (
+            player.direction + angle + 
             std::f32::consts::PI * 2f32
         ) % (std::f32::consts::PI * 2f32);
+
+        //return newPlayer;
     }
 
-    pub fn move_(&mut self, x: f32) -> ()
+    pub fn move_(player: &mut Player, x: f32, map: &crate::map::Map) -> ()
     {
         let hitbox_x = 0.0;//self.direction.cos() * 3.5;
         let hitbox_y = 0.0;//self.direction.sin() * 3.5;
 
-        let dx = self.direction.cos() * x;
-        let dy = self.direction.sin() * x;
+        let dx = player.direction.cos() * x;
+        let dy = player.direction.sin() * x;
 
-        if self.map.can_move_to((self.x + dx + hitbox_x) / 32.0, (self.y + hitbox_y) / 32.0) 
+        if crate::map::Map::can_move_to(&map, (player.x + dx + hitbox_x) / 32.0, (player.y + hitbox_y) / 32.0) 
         {
-            self.x += dx;
+            player.x += dx;
         }
 
-        if self.map.can_move_to((self.x + hitbox_x) / 32.0, (self.y + dy + hitbox_y) / 32.0) 
+        if crate::map::Map::can_move_to(&map, (player.x + hitbox_x) / 32.0, (player.y + dy + hitbox_y) / 32.0) 
         {
-            self.y += dy;
+            player.y += dy;
         }
     }
 
@@ -51,19 +53,14 @@ impl<'a> Player<'a> {
         return (self.x as f32, self.y as f32)
     }
 
-    pub fn draw(&mut self, gfx: &mut quicksilver::graphics::Graphics) -> () {
-        
-        let mut player_coords = self.coordinates();
-        let coords = Vector::new(player_coords.0, player_coords.1);
+    pub fn draw(player: &Player, gfx: &mut quicksilver::graphics::Graphics) -> () {
+        let coords = Vector::new(player.x, player.y);
         gfx.fill_circle(&Circle::new(coords, 8.0), Color::RED);
 
-        let dx = self.direction.cos() * 20.0;
-        let dy = self.direction.sin() * 20.0;
+        let dx = player.direction.cos() * 20.0;
+        let dy = player.direction.sin() * 20.0;
 
-        player_coords.0 += dx;
-        player_coords.1 += dy;
-
-        let coords = Vector::new(player_coords.0, player_coords.1);
+        let coords = Vector::new(player.x + dx, player.y + dy);
 
 
         gfx.fill_circle(&Circle::new(coords, 3.0), Color::GREEN);
