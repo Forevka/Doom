@@ -35,6 +35,11 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     //println!("{:?}", camera);
 
+    let mut prevMouse: Vector = Vector {
+        x: 0.0,
+        y: 0.0,
+    };
+
     const GRAY: Color = Color {
         r: 0.5,
         g: 0.5,
@@ -65,6 +70,23 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         if input.key_down(Key::S) {
             vector_x -= SPEED;
         }
+
+        if input.key_down(Key::Escape) {
+            return Ok(());
+        }
+
+        let mouse = input.mouse().location();
+        //println!("{}", mouse);
+        let mut mouse_x_delta = prevMouse.x - mouse.x;
+        prevMouse = mouse;
+        if mouse_x_delta != 0.0
+        {
+        println!("{}", mouse_x_delta);
+        if mouse_x_delta > 1.0 {mouse_x_delta = 1.0}
+        if mouse_x_delta < -1.0 {mouse_x_delta = -1.0}
+        player::Player::rotate(&mut playerRef.borrow_mut(), -mouse_x_delta.sin() / 20.0);
+        }
+        
         
 
         player::Player::rotate(&mut playerRef.borrow_mut(), rotating);
@@ -85,8 +107,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             //println!("{}",x);
             let camera_x = 2f32 * x / 720.0 - 1.0;
             //println!("{}", cameraX);
-            let ray_dir_x = playerRef.borrow().direction.cos() + 0.8 * camera_x;
-            let ray_dir_y = playerRef.borrow().direction.sin() + 0.0 * camera_x;
+            let ray_dir_x = playerRef.borrow().direction.cos() + 0.0 * camera_x;
+            let ray_dir_y = playerRef.borrow().direction.sin() + 0.66 * camera_x;
             //println!("{}, {}", ray_dir_x, ray_dir_y);
             let mut map_x = (playerRef.borrow().x) as i32;
             let mut map_y = (playerRef.borrow().y) as i32;
