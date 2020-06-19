@@ -27,7 +27,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     let mapRef: Rc<RefCell<map::Map>> = Rc::new(RefCell::new(map));
 
-    let mut player = player::Player::new(100.0, 100.0, 30.0);
+    let mut player = player::Player::new(100.0, 100.0, -90.0);
 
     let mut playerRef: Rc<RefCell<player::Player>> = Rc::new(RefCell::new(player));
 
@@ -73,6 +73,91 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         player::Player::draw(&playerRef.borrow(), &mut gfx);
         camera::Camera::render(&playerRef.borrow(), &mapRef.borrow(), &mut gfx);
 
+        for i in 0..720 {
+            let x = 1.0 * (i as f32);
+            //println!("{}",x);
+            let camera_x = 2f32 * x / 720.0 - 1.0;
+            //println!("{}", cameraX);
+            let ray_dir_x = playerRef.borrow().direction.cos() + 0.8 * camera_x;
+            let ray_dir_y = playerRef.borrow().direction.sin() + 0.8 * camera_x;
+            //println!("{}, {}", ray_dir_x, ray_dir_y);
+            let mut map_x = (playerRef.borrow().x) as i32;
+            let mut map_y = (playerRef.borrow().y) as i32;
+
+            let mut side_dist_x: f32;
+            let mut side_dist_y: f32;
+
+            let step_x: i32;
+            let step_y: i32;
+
+            let delta_dist_x = if ray_dir_y == 0.0 {0.0} else { if ray_dir_x == 0.0 { 1.0 } else { (1.0 / ray_dir_x).abs()} };
+            let delta_dist_y = if ray_dir_x == 0.0 {0.0} else { if ray_dir_y == 0.0 { 1.0 } else { (1.0 / ray_dir_y).abs()} };
+
+            //println!("{}, {}", delta_dist_x, delta_dist_y);
+            let mut hit: i32 = 0;
+            let mut side: i32 = 0;
+
+            let mut perp_wall_dist: f32 = 0.0;
+
+            if ray_dir_x < 0.0
+            {   
+                step_x = -1;
+                side_dist_x = ((playerRef.borrow().x) - map_x as f32) * delta_dist_x;
+            } else {
+                step_x = 1;
+                side_dist_x = (map_x as f32 + 1.0 - (playerRef.borrow().x )) * delta_dist_x;
+            }
+
+            if ray_dir_y < 0.0
+            {
+                step_y= -1;
+                side_dist_y = ((playerRef.borrow().y ) - map_y as f32) * delta_dist_y;
+            }else {
+                step_y = 1;
+                side_dist_y = (map_y as f32 + 1.0 - (playerRef.borrow().y )) * delta_dist_y;
+            }
+
+            while hit == 0
+            {
+                if side_dist_x < side_dist_y
+                {
+                    side_dist_x += delta_dist_x;
+                    map_x += step_x;
+                    side = 0;
+                } else {
+                    side_dist_y += delta_dist_y;
+                    map_y += step_y;
+                    side = 1;
+                }
+
+                if !map::Map::can_move_to(&mapRef.borrow(), map_x as f32 / 32.0, map_y as f32 / 32.0) {
+                    hit = 1;
+                }
+            }
+
+            
+            if side == 0 {
+                perp_wall_dist = (map_x as f32 - (playerRef.borrow().x) + (1.0 - step_x as f32) / 2.0) / ray_dir_x;
+            } else {
+                perp_wall_dist = (map_y as f32 - (playerRef.borrow().y) + (1.0 - step_y as f32) / 2.0) / ray_dir_y;
+            }
+
+            let line_height = 720.0 / perp_wall_dist;
+
+            let mut draw_start = -line_height / 2.0 + 720.0 / 2.0;
+
+            if draw_start < 0.0 { draw_start = 0.0};
+
+            let mut draw_end = line_height / 2.0 + 720.0 / 2.0;
+
+            if draw_end >= 720.0 {draw_end = 720.0 - 1.0};
+            //println!("{}, {}, {}", x);
+            gfx.fill_rect(
+                &Rectangle::new(Vector::new(300.0 + x, draw_start), Vector::new(1.0, line_height)),
+                Color::BLACK
+            );
+        }
+        //gfx.fill_rect(rect: &Rectangle, color: Color)
         //let x = Rc::get_mut(&mut playerRef).unwrap();
         //x.draw(&mut gfx);
         //playerRef.draw(&mut gfx);

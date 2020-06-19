@@ -8,9 +8,9 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Player {
-    x: f32,
-    y: f32,
-    direction: f32,
+    pub x: f32,
+    pub y: f32,
+    pub direction: f32,
     fov: f32,
 }
 

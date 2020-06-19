@@ -91,7 +91,7 @@ impl Map {
         }
     }
 
-    pub fn step(map: &Map, rise: f32, run: f32, x: f32, y: f32, inverted: bool, angle: f32) -> Step 
+    /*pub fn step(map: &Map, rise: f32, run: f32, x: f32, y: f32, inverted: bool, angle: f32) -> Step 
     {
         let mut step = Step{x: 0.0, y: 0.0, length: 0.0, distance: 0.0, isInfinity: true, height: 0.0, offset: 0.0, shading: 0.0};
         if run == 0.0 
@@ -168,5 +168,5 @@ impl Map {
     pub fn cast(map: &Map, user_x: f32, user_y: f32, angle: f32, range: f32)
     {
         return 
-    }
+    }*/
 }
