@@ -38,12 +38,12 @@ impl Player {
         let dx = player.direction.cos() * x;
         let dy = player.direction.sin() * x;
 
-        if crate::map::Map::can_move_to(&map, (player.x + dx + hitbox_x) / 32.0, (player.y + hitbox_y) / 32.0) 
+        if crate::map::Map::can_move_to(&map, (player.x + dx + hitbox_x) / 12.0, (player.y + hitbox_y) / 12.0) 
         {
             player.x += dx;
         }
 
-        if crate::map::Map::can_move_to(&map, (player.x + hitbox_x) / 32.0, (player.y + dy + hitbox_y) / 32.0) 
+        if crate::map::Map::can_move_to(&map, (player.x + hitbox_x) / 12.0, (player.y + dy + hitbox_y) / 12.0) 
         {
             player.y += dy;
         }
@@ -55,7 +55,7 @@ impl Player {
 
     pub fn draw(player: &Player, gfx: &mut quicksilver::graphics::Graphics) -> () {
         let coords = Vector::new(player.x, player.y);
-        gfx.fill_circle(&Circle::new(coords, 8.0), Color::RED);
+        gfx.fill_circle(&Circle::new(coords, 5.0), Color::RED);
 
         let dx = player.direction.cos() * 20.0;
         let dy = player.direction.sin() * 20.0;
@@ -63,6 +63,6 @@ impl Player {
         let coords = Vector::new(player.x + dx, player.y + dy);
 
 
-        gfx.fill_circle(&Circle::new(coords, 3.0), Color::GREEN);
+        gfx.fill_circle(&Circle::new(coords, 2.0), Color::GREEN);
     }
 }

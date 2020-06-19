@@ -35,10 +35,17 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
     //println!("{:?}", camera);
 
+    const GRAY: Color = Color {
+        r: 0.5,
+        g: 0.5,
+        b: 0.5,
+        a: 1.0,
+    };
+
     loop {
         while let Some(_) = input.next_event().await {}
 
-        const SPEED: f32 = 2.0;
+        const SPEED: f32 = 0.6;
 
         let mut vector_x: f32 = 0.0;
         let mut rotating: f32 = 0.0;
@@ -79,7 +86,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             let camera_x = 2f32 * x / 720.0 - 1.0;
             //println!("{}", cameraX);
             let ray_dir_x = playerRef.borrow().direction.cos() + 0.8 * camera_x;
-            let ray_dir_y = playerRef.borrow().direction.sin() + 0.8 * camera_x;
+            let ray_dir_y = playerRef.borrow().direction.sin() + 0.0 * camera_x;
             //println!("{}, {}", ray_dir_x, ray_dir_y);
             let mut map_x = (playerRef.borrow().x) as i32;
             let mut map_y = (playerRef.borrow().y) as i32;
@@ -130,7 +137,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     side = 1;
                 }
 
-                if !map::Map::can_move_to(&mapRef.borrow(), map_x as f32 / 32.0, map_y as f32 / 32.0) {
+                if !map::Map::can_move_to(&mapRef.borrow(), map_x as f32 / 12.0, map_y as f32 / 12.0) {
                     hit = 1;
                 }
             }
@@ -142,19 +149,26 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                 perp_wall_dist = (map_y as f32 - (playerRef.borrow().y) + (1.0 - step_y as f32) / 2.0) / ray_dir_y;
             }
 
-            let line_height = 720.0 / perp_wall_dist;
+            let line_height = 420.0 / perp_wall_dist;
 
-            let mut draw_start = -line_height / 2.0 + 720.0 / 2.0;
+            let mut draw_start = -line_height / 2.0 + 420.0 / 2.0;
 
             if draw_start < 0.0 { draw_start = 0.0};
 
-            let mut draw_end = line_height / 2.0 + 720.0 / 2.0;
+            let mut draw_end = line_height / 2.0 + 420.0 / 2.0;
 
-            if draw_end >= 720.0 {draw_end = 720.0 - 1.0};
+            if draw_end >= 420.0 {draw_end = 420.0 - 1.0};
             //println!("{}, {}, {}", x);
+
+            let mut color: Color = GRAY;
+            if side == 1
+            {
+                color = Color::BLACK;
+            }
+
             gfx.fill_rect(
                 &Rectangle::new(Vector::new(300.0 + x, draw_start), Vector::new(1.0, line_height)),
-                Color::BLACK
+                color
             );
         }
         //gfx.fill_rect(rect: &Rectangle, color: Color)
