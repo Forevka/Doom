@@ -125,17 +125,16 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         map::Map::render(&mapRef.borrow(), &mut gfx);
         player::Player::draw(&playerRef.borrow(), &mut gfx);
         camera::Camera::render(&playerRef.borrow(), &mapRef.borrow(), &mut gfx);
-
-        println!("{}", playerRef.borrow().direction);
+        
 
         for i in 0..(WIDTH) as i32 {
             let x = 1.0 * (i as f32);
-            //println!("{}",x);
+
             let camera_x = 2f32 * x / WIDTH - 1.0;
-            //println!("{}", cameraX);
+            
             let ray_dir_x = playerRef.borrow().direction.cos() + plane_x * camera_x;
             let ray_dir_y = playerRef.borrow().direction.sin() + plane_y * camera_x;
-            //println!("{}, {}", ray_dir_x, ray_dir_y);
+            
             let mut map_x = (playerRef.borrow().x) as i32;
             let mut map_y = (playerRef.borrow().y) as i32;
 
@@ -147,8 +146,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
             let delta_dist_x = if ray_dir_y == 0.0 {0.0} else { if ray_dir_x == 0.0 { 1.0 } else { (1.0 / ray_dir_x).abs()} };
             let delta_dist_y = if ray_dir_x == 0.0 {0.0} else { if ray_dir_y == 0.0 { 1.0 } else { (1.0 / ray_dir_y).abs()} };
-
-            //println!("{}, {}", delta_dist_x, delta_dist_y);
+            
             let mut hit: i32 = 0;
             let mut side: i32 = 0;
 
@@ -185,7 +183,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                     side = 1;
                 }
 
-                if !map::Map::can_move_to(&mapRef.borrow(), map_x as f32 / 12.0, map_y as f32 / 12.0) {
+                if map::Map::get_point(&mapRef.borrow(), map_x as f32 / 12.0, map_y as f32 / 12.0) != 0 {
                     hit = 1;
                 }
             }
@@ -201,12 +199,15 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
 
             let mut draw_start = -line_height / 2.0 + HEIGHT / 2.0;
 
-            if draw_start < 0.0 { draw_start = 0.0};
+            if draw_start < 0.0 { 
+                draw_start = 0.0
+            };
 
             let mut draw_end = line_height / 2.0 + HEIGHT / 2.0;
 
-            if draw_end >= HEIGHT {draw_end = HEIGHT - 1.0};
-            //println!("{}, {}, {}", x);
+            if draw_end >= HEIGHT {
+                draw_end = HEIGHT - 1.0
+            };
 
             let mut color: Color = GRAY;
             if side == 1
