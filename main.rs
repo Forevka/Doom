@@ -5,6 +5,7 @@ use quicksilver::{
     input::Key,
     run, Graphics, Input, Result, Settings, Window,
 };
+
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -12,9 +13,14 @@ mod player;
 mod map;
 mod camera;
 
+
 fn main() {
+    let WIDTH = 1024.0;
+    let HEIGHT = 768.0;
+
     run(
         Settings {
+            size: Vector::new(WIDTH, HEIGHT),
             title: "Doom 1234",
             ..Settings::default()
         },
@@ -23,11 +29,14 @@ fn main() {
 }
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
+    let WIDTH = 1024.0;
+    let HEIGHT = 768.0;
+
     let mut map = map::Map::new(64);
 
     let mapRef: Rc<RefCell<map::Map>> = Rc::new(RefCell::new(map));
 
-    let mut player = player::Player::new(100.0, 100.0, -90.0);
+    let mut player = player::Player::new(100.0, 100.0, 0.0);
 
     let mut playerRef: Rc<RefCell<player::Player>> = Rc::new(RefCell::new(player));
 
@@ -47,21 +56,36 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         a: 1.0,
     };
 
+    let mut plane_x = 0.0;
+    let mut plane_y = 0.66;
+
+    let mut dirX: f32 = 1.0;
+    let mut dirY: f32 = 1.0;
+
+    const SPEED: f32 = 0.6;
+    const ROTATION_SPEED: f32 = SPEED / 20.0;
     loop {
         while let Some(_) = input.next_event().await {}
-
-        const SPEED: f32 = 0.6;
 
         let mut vector_x: f32 = 0.0;
         let mut rotating: f32 = 0.0;
 
         if input.key_down(Key::A) {
             rotating -= SPEED / 20.0;
+
+            let old_plane_x = plane_x;
+            plane_x = (plane_x * (rotating).cos() - plane_y * (rotating).sin()) ;
+            plane_y = old_plane_x * (rotating).sin() + plane_y * (rotating).cos();
         }
 
         if input.key_down(Key::D) {
             rotating += SPEED / 20.0;
+            let old_plane_x = plane_x;
+            plane_x = (plane_x * (rotating).cos() - plane_y * (rotating).sin());
+            plane_y = old_plane_x * (rotating).sin() + plane_y * (rotating).cos();
         }
+
+        //println!("{}, {}", plane_x, plane_y);
 
         if input.key_down(Key::W) {
             vector_x += SPEED;
@@ -81,10 +105,10 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         prevMouse = mouse;
         if mouse_x_delta != 0.0
         {
-        println!("{}", mouse_x_delta);
-        if mouse_x_delta > 1.0 {mouse_x_delta = 1.0}
-        if mouse_x_delta < -1.0 {mouse_x_delta = -1.0}
-        player::Player::rotate(&mut playerRef.borrow_mut(), -mouse_x_delta.sin() / 20.0);
+        //println!("{}", mouse_x_delta);
+        //if mouse_x_delta > 1.0 {mouse_x_delta = 1.0}
+        //if mouse_x_delta < -1.0 {mouse_x_delta = -1.0}
+        //player::Player::rotate(&mut playerRef.borrow_mut(), -mouse_x_delta.sin() / 20.0);
         }
         
         
@@ -102,13 +126,15 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         player::Player::draw(&playerRef.borrow(), &mut gfx);
         camera::Camera::render(&playerRef.borrow(), &mapRef.borrow(), &mut gfx);
 
-        for i in 0..720 {
+        println!("{}", playerRef.borrow().direction);
+
+        for i in 0..(WIDTH) as i32 {
             let x = 1.0 * (i as f32);
             //println!("{}",x);
-            let camera_x = 2f32 * x / 720.0 - 1.0;
+            let camera_x = 2f32 * x / WIDTH - 1.0;
             //println!("{}", cameraX);
-            let ray_dir_x = playerRef.borrow().direction.cos() + 0.0 * camera_x;
-            let ray_dir_y = playerRef.borrow().direction.sin() + 0.66 * camera_x;
+            let ray_dir_x = playerRef.borrow().direction.cos() + plane_x * camera_x;
+            let ray_dir_y = playerRef.borrow().direction.sin() + plane_y * camera_x;
             //println!("{}, {}", ray_dir_x, ray_dir_y);
             let mut map_x = (playerRef.borrow().x) as i32;
             let mut map_y = (playerRef.borrow().y) as i32;
@@ -171,15 +197,15 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
                 perp_wall_dist = (map_y as f32 - (playerRef.borrow().y) + (1.0 - step_y as f32) / 2.0) / ray_dir_y;
             }
 
-            let line_height = 420.0 / perp_wall_dist;
+            let line_height = HEIGHT / perp_wall_dist;
 
-            let mut draw_start = -line_height / 2.0 + 420.0 / 2.0;
+            let mut draw_start = -line_height / 2.0 + HEIGHT / 2.0;
 
             if draw_start < 0.0 { draw_start = 0.0};
 
-            let mut draw_end = line_height / 2.0 + 420.0 / 2.0;
+            let mut draw_end = line_height / 2.0 + HEIGHT / 2.0;
 
-            if draw_end >= 420.0 {draw_end = 420.0 - 1.0};
+            if draw_end >= HEIGHT {draw_end = HEIGHT - 1.0};
             //println!("{}, {}, {}", x);
 
             let mut color: Color = GRAY;
@@ -189,7 +215,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             }
 
             gfx.fill_rect(
-                &Rectangle::new(Vector::new(300.0 + x, draw_start), Vector::new(1.0, line_height)),
+                &Rectangle::new(Vector::new(x, draw_start), Vector::new(1.0, line_height)),
                 color
             );
         }
